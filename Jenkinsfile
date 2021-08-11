@@ -1,23 +1,28 @@
 pipeline {
-    agent any
+    agent {
+        label 'master'
+    }
+    
     stages{
-        stage('init'){
+        stage('checkout code'){
             steps {
-                echo "Testing..."
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/danny-ros/jenkinspipeline.git']]])
             }
         }
-    stages{
-            stage('Build'){
-                steps {
-                    sh "mvn clean package"
-                }
+        stage('Build'){
+            steps {
+                sh 'mvn clean package'
             }
-    stages{
-                stage('Deploy'){
-                    steps {
-                        echo "Code Deployed..."
-                    }
-                }
+        }
+        stage('Deploy to Integration ') {
+            steps {
+                sh 'cp webapp/target/webapp.war /opt/tomcat/latest/webapps'
+            }
+        }
+        stage('Archive Artifact  ') {
+            steps {
+                archiveArtifacts artifacts: 'webapp/target/webapp.war', followSymlinks: false
+            }
+        }    
     }
 }
-
